@@ -9,10 +9,12 @@ from chartwright.core import (
     lint_chart,
     load_chart,
     load_values,
+    parse_set_overrides,
     parse_yaml_subset,
     render_chart,
     render_template,
     suggest_values,
+    values_schema,
 )
 
 __version__ = TOOL_VERSION
@@ -27,8 +29,10 @@ __all__ = [
     "lint_chart",
     "load_chart",
     "load_values",
+    "parse_set_overrides",
     "parse_yaml_subset",
     "render_chart",
     "render_template",
     "suggest_values",
+    "values_schema",
 ]

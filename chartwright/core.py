@@ -490,6 +490,44 @@ def diff_values(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
             "changed_count": len(changed)}
 
 
+def values_schema(chart: Chart) -> Dict[str, Any]:
+    """Extract every ``.Values.*`` path the chart's templates reference.
+
+    Returns {used, declared, undeclared} where ``undeclared`` are referenced
+    paths with no entry in values.yaml (likely missing defaults).
+    """
+    used: set = set()
+    pat = re.compile(r"\.Values((?:\.[A-Za-z_][A-Za-z0-9_]*)+)")
+    for src in chart.templates.values():
+        for m in pat.finditer(src):
+            used.add(m.group(1).lstrip("."))
+    declared = set(_flatten(chart.values).keys())
+    # A used path "a.b" is satisfied if any declared leaf starts with it.
+    undeclared = sorted(
+        u for u in used
+        if not any(d == u or d.startswith(u + ".") or d.startswith(u + "[")
+                   for d in declared))
+    return {"used": sorted(used), "declared": sorted(declared),
+            "undeclared": undeclared}
+
+
+def parse_set_overrides(items: List[str]) -> Dict[str, Any]:
+    """Parse ``a.b.c=value`` strings into a nested override dict (Helm --set style)."""
+    out: Dict[str, Any] = {}
+    for item in items:
+        if "=" not in item:
+            raise ChartError(f"--set expects key=value, got {item!r}")
+        path, raw = item.split("=", 1)
+        node = out
+        parts = path.split(".")
+        for seg in parts[:-1]:
+            node = node.setdefault(seg, {})
+            if not isinstance(node, dict):
+                raise ChartError(f"--set path conflict at {seg!r}")
+        node[parts[-1]] = _coerce(raw)
+    return out
+
+
 def load_values(path: str) -> Dict[str, Any]:
     if not os.path.isfile(path):
         raise ChartError(f"values file not found: {path}")

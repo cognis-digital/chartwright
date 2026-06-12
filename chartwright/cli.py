@@ -43,6 +43,8 @@ def _build_parser() -> argparse.ArgumentParser:
     t.add_argument("chart", help="Path to a chart directory.")
     t.add_argument("--release", default="release", help="Release name.")
     t.add_argument("--values", help="Override values file (yaml/json).")
+    t.add_argument("--set", action="append", default=[], metavar="K=V",
+                   help="Inline value override, e.g. image.tag=2.0 (repeatable).")
     t.add_argument("--out", help="Write rendered output to a file.")
 
     l = sub.add_parser("lint", help="Lint a chart's structure and templates.")
@@ -55,15 +57,26 @@ def _build_parser() -> argparse.ArgumentParser:
     d.add_argument("right")
     d.add_argument("--format", choices=("table", "json"), default="table")
 
+    sc = sub.add_parser("schema", help="List .Values paths the chart references.")
+    sc.add_argument("chart")
+    sc.add_argument("--format", choices=("table", "json"), default="table")
+    sc.add_argument("--fail-on-undeclared", action="store_true",
+                    help="Exit non-zero if a referenced value has no default.")
+
     sub.add_parser("mcp", help="Run as an MCP server (stdio JSON-RPC).")
     return p
 
 
 def _run_template(a) -> int:
+    from chartwright.core import _deep_merge
+    from chartwright import parse_set_overrides
     try:
         chart = load_chart(a.chart)
-        overrides = load_values(a.values) if a.values else None
-        rendered = render_chart(chart, release=a.release, overrides=overrides)
+        overrides = load_values(a.values) if a.values else {}
+        if a.set:
+            overrides = _deep_merge(overrides or {}, parse_set_overrides(a.set))
+        rendered = render_chart(chart, release=a.release,
+                                overrides=overrides or None)
     except (OSError, ChartError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
@@ -120,6 +133,26 @@ def _run_diff(a) -> int:
     return 0
 
 
+def _run_schema(a) -> int:
+    from chartwright import values_schema
+    try:
+        sch = values_schema(load_chart(a.chart))
+    except (OSError, ChartError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    if a.format == "json":
+        print(json.dumps(sch, indent=2))
+    else:
+        print(f"chartwright schema — {len(sch['used'])} value path(s) used")
+        print("=" * 60)
+        for u in sch["used"]:
+            flag = "  (no default!)" if u in sch["undeclared"] else ""
+            print(f"  .Values.{u}{flag}")
+    if a.fail_on_undeclared and sch["undeclared"]:
+        return 1
+    return 0
+
+
 def _run_mcp() -> int:
     from chartwright.mcp_server import run_mcp_server
     run_mcp_server()
@@ -135,6 +168,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         return _run_lint(args)
     if args.command == "diff":
         return _run_diff(args)
+    if args.command == "schema":
+        return _run_schema(args)
     if args.command == "mcp":
         return _run_mcp()
     parser.print_help(sys.stderr)
