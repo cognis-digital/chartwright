@@ -1,0 +1,7 @@
+replicaCount: 5
+image:
+  repository: localhost:5000/hello-edge
+  tag: "1.2.0-prod"
+service:
+  enabled: true
+  port: 443

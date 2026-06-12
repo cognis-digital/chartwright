@@ -1,0 +1,4 @@
+apiVersion: v2
+name: hello-edge
+version: 1.2.0
+description: A demo chart rendered by chartwright without a Helm binary.

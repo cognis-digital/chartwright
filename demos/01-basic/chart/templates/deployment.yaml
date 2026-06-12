@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Chart.name }}
+spec:
+  replicas: {{ .Values.replicaCount | default 1 }}
+  template:
+    spec:
+      containers:
+        - name: {{ .Chart.name }}
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          env:
+{{- range .Values.env }}
+            - name: {{ . }}
+{{- end }}

@@ -1,0 +1,10 @@
+replicaCount: 2
+image:
+  repository: localhost:5000/hello-edge
+  tag: "1.2.0"
+service:
+  enabled: true
+  port: 80
+env:
+  - LOG_LEVEL
+  - CACHE_HOST
