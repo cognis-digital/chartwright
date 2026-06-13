@@ -77,3 +77,30 @@ contains no third-party code, names, or branding.
 
 Part of the **Cognis Neural Suite** — 300+ source-available tools organized across 12 domains under the JTF MERIDIAN command structure. See the [suite on GitHub](https://github.com/cognis-digital) and [jtf-meridian](https://github.com/cognis-digital/jtf-meridian) for how the pieces fit together.
 <!-- cognis:domains:end -->
+
+## Usage — step by step
+
+`chartwright` renders, lints, and diffs Helm charts and their values — no Helm binary required.
+
+1. **Install** (pure stdlib, Python 3.10+):
+   ```bash
+   pip install "git+https://github.com/cognis-digital/chartwright.git"
+   ```
+2. **Render** a chart's templates against its values, layering an env override file and inline `--set`:
+   ```bash
+   chartwright template ./mychart --release prod --values values-prod.yaml --set image.tag=2.0
+   ```
+3. **Lint** chart structure and balanced if/range/with blocks; `--fail-on warning` tightens the gate:
+   ```bash
+   chartwright lint ./mychart --fail-on warning
+   ```
+4. **Use the output** — list the `.Values` paths a chart references (catch typos with `--fail-on-undeclared`), or diff values across environments:
+   ```bash
+   chartwright schema ./mychart --fail-on-undeclared
+   chartwright diff values.yaml values-prod.yaml --format json
+   ```
+5. **Automate in CI** — lint + schema-check as a pre-merge gate:
+   ```bash
+   chartwright lint ./mychart && chartwright schema ./mychart --fail-on-undeclared
+   ```
+   Or run it as a local MCP server (stdio JSON-RPC): `chartwright mcp`.
