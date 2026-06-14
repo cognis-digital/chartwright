@@ -34,3 +34,6 @@ chartwright = "chartwright.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["chartwright"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
