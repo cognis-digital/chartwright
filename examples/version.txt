@@ -1,0 +1,3 @@
+$ chartwright-emit --version
+
+chartwright 0.1.0

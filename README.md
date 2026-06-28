@@ -8,6 +8,41 @@ Part of the **Cognis Neural Suite**.
 
 ---
 
+
+<!-- cognis:example:start -->
+## 🔎 Example output
+
+Real, reproducible output from the tool — runs offline:
+
+```console
+$ chartwright-emit --version
+chartwright 0.1.0
+```
+
+```console
+$ chartwright-emit --help
+usage: chartwright [-h] [--version] {template,lint,diff,schema,mcp} ...
+
+Helm-chart templating, linting & values-diff — render and lint charts and diff
+values across environments, no Helm binary required.
+
+positional arguments:
+  {template,lint,diff,schema,mcp}
+    template            Render a chart's templates.
+    lint                Lint a chart's structure and templates.
+    diff                Diff two values files.
+    schema              List .Values paths the chart references.
+    mcp                 Run as an MCP server (stdio JSON-RPC).
+
+options:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+```
+
+> Blocks above are real `chartwright` output — reproduce them from a clone.
+
+<!-- cognis:example:end -->
+
 ## Why
 
 You don't always have (or want) a Helm install in CI, in an air-gap, or in a
